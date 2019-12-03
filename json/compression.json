@@ -1,0 +1,45 @@
+{
+	"input_name": "methyl-7.bed",
+	"sample_bucket": "methyl-data",
+	"sample_input": true,
+	"model": "lambda",
+	"iterations": 10,
+	"region": "us-west-2",
+	"folder": "methyl-file-lambda",
+	"num_output": 84,
+	"timeout": 300,
+	"tag": "dna-compression",
+	"bucket": "methyl",
+	"storage_class": "STANDARD",
+	"account": 0,
+	"log": "methyl-log",
+	"num_bins": 1,
+	"role": "service-role/lambdaFullAccessRole",
+	"stats": true,
+	"setup": true,
+	"credential_profile": "add-credentials-here",
+	"functions": {
+		"split-methyl": {
+			"file": "split_file",
+			"format": "new_line",
+			"chunk_size": 1000000,
+			"memory_size": 1024,
+			"adjust": true
+		},
+		"compress-methyl": {
+			"file": "application",
+			"format": "new_line",
+			"application": "compress_methyl",
+			"program_bucket": "ripple-programs",
+			"memory_size": 1024,
+			"action": "compress"
+		}
+	},
+	"pipeline": [{
+		"name": "split-methyl",
+		"split_size": 100000000,
+		"output_function": "compress-methyl"
+	}, {
+		"name": "compress-methyl"
+	}]
+}

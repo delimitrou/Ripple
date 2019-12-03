@@ -1,0 +1,64 @@
+{
+	"input_name": "input-10.fasta",
+	"model": "lambda",
+	"iterations": 10,
+	"folder": "ssw-files-lambda",
+	"region": "us-west-1",
+	"tag": "smith-waterman",
+	"storage_class": "STANDARD",
+	"timeout": 300,
+	"num_bins": 10,
+	"num_output": 1,
+	"log": "log",
+	"bucket": "ssw",
+	"account": 0,
+	"role": "service-role/lambdaFullAccessRole",
+	"stats": true,
+	"setup": true,
+	"sample_input": false,
+	"credential_profile": "add-credentials-here",
+	"functions": {
+		"map-fasta": {
+			"file": "map",
+		  "map_bucket": "ssw-database",
+			"memory_size": 128
+		},
+		"smith-waterman": {
+			"file": "application",
+			"application": "ssw",
+			"memory_size": 1024,
+			"program_bucket": "ssw-program"
+		},
+		"top-blast": {
+			"file": "top",
+			"format": "blast",
+			"memory_size": 1024,
+			"chunk_size": 100000,
+ 			"number": 100,
+			"identifier": "score"
+		},
+		"combine-blast-files": {
+			"file": "combine_files",
+			"format": "blast",
+			"chunk_size": 100000,
+			"num_bins": 1,
+			"memory_size": 1024
+		}
+	},
+	"pipeline": [{
+		"name": "map-fasta",
+		"input_key_value": "key",
+		"bucket_key_value": "target", 
+		"output_function": "smith-waterman",
+		"directories": false,
+		"ranges": false
+	}, {
+		"name": "smith-waterman"
+	},{
+	  "name": "top-blast"
+	},{
+	  "name": "combine-blast-files"
+	},{
+	  "name": "top-blast"
+	}]
+}

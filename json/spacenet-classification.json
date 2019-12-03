@@ -1,0 +1,75 @@
+{
+	"input_name": "3band_AOI_1_RIO_img5792.tif",
+	"account": 0,
+	"bucket": "knn",
+	"credential_profile": "add-credentials-here",
+	"folder": "knn",
+	"log": "log",
+	"num_bins": 18,
+	"model": "lambda",
+	"scheduler": false,
+	"num_output": 1,
+	"iterations": 1,
+	"region": "us-east-1",
+	"role": "service-role/lambdaFullAccessRole",
+	"storage_class": "STANDARD",
+	"tag": "tide",
+	"timeout": 300,
+	"stats": true,
+	"setup": true,
+	"dependencies": {
+		"formats": {
+			"classification": [
+				"formats/new_line.py"
+			],
+			"knn": [
+				"formats/new_line.py"
+			]
+		}
+	},
+	"functions": {
+		"convert-to-pixels": {
+			"file": "application",
+			"application": "convert_to_pixels",
+			"batch_size": 10000,
+			"memory_size": 128
+		},
+		"map-spacenet": {
+			"file": "map",
+		  "map_bucket": "spacenet",
+			"memory_size": 128,
+		  "input_key_value": "key",
+		  "bucket_key_value": "train", 
+		  "output_function": "knn",
+		  "directories": false,
+		  "ranges": false
+		},
+		"knn": {
+		  "file": "application",
+			"format": "classification",
+			"application": "run_knn",
+			"memory_size": 3008,
+			"train_bucket": "-spacenet-east-1",
+			"n": 100
+		},
+		"combine-knn-files": {
+			"file": "combine_files",
+			"format": "knn",
+			"memory_size": 3008,
+			"n": 100
+		}
+	},
+	"pipeline": [{
+	  "name": "convert-to-pixels"
+	}, {
+	  "name": "map-spacenet"
+	}, {
+	  "name": "knn" 
+	}, {
+	  "name": "combine-knn-files",
+		"num_bins": 43
+	}, {
+	  "name": "combine-knn-files",
+		"num_bins": 1
+	}]
+}

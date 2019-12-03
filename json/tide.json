@@ -1,0 +1,132 @@
+{
+	"input_name": "TN_CSF_062617_03.mzML",
+	"model": "lambda",
+	"iterations": 10,
+	"region": "us-west-2",
+	"folder": "tide-files-lambda",
+	"scheduler": false,
+	"tag": "tide",
+	"timeout": 300,
+	"num_bins": 25,
+	"bucket": "tide",
+	"storage_class": "STANDARD",
+	"account": 0,
+	"credential_profile": "add-credentials-here",
+	"role": "LambdaExecution",
+	"log": "log",
+	"sample_input": true,
+	"sample_bucket": "als",
+	"num_output": 1,
+	"stats": true,
+	"setup": true,
+	"functions": {
+		"split-mzML": {
+			"file": "split_file",
+			"format": "mzML",
+			"memory_size": 128,
+	    "split_size": 5000000,
+			"adjust": false
+		},
+		"find-mzML-pivots": {
+			"file": "pivot_file",
+			"format": "mzML",
+			"memory_size": 1024
+		},
+		"combine-pivot-files": {
+			"file": "combine_files",
+			"format": "pivot",
+			"memory_size": 1024
+		},
+		"sort-mzML-chunk": {
+			"file": "sort",
+			"format": "mzML",
+			"memory_size": 1024
+		},
+		"combine-mzML-files": {
+			"file": "combine_files",
+			"format": "mzML",
+			"memory_size": 512
+		},
+		"tide": {
+			"file": "application",
+			"application": "tide",
+			"memory_size": 2048,
+			"database_bucket": "fasta"
+		},
+		"combine-tsv-files": {
+			"file": "combine_files",
+			"format": "tsv",
+			"memory_size": 256
+		},
+		"confidence": {
+			"file": "application",
+			"application": "confidence",
+			"database_bucket": "fasta",
+			"memory_size": 512
+		},
+		"percolator": {
+			"file": "application",
+			"application": "percolator",
+			"database_bucket": "fasta",
+			"memory_size": 3008
+		},
+		"top-mzML": {
+			"file": "top",
+			"format": "mzML",
+			"memory_size": 1024
+		},
+		"map-species": {
+			"file": "map",
+			"memory_size": 128
+		},
+		"find-species-match": {
+			"file": "match",
+			"format": "confidence",
+			"memory_size": 128
+		},
+		"handle-specie-match": {
+			"file": "application",
+			"application": "handle_specie_match",
+			"memory_size": 128
+		},
+		"initiate-split": {
+			"file": "initiate",
+			"memory_size": 1024
+		}
+	},
+	"pipeline": [{
+	  "name": "split-mzML",
+	  "ranges": false,
+	  "chunk_size": 10000000,
+	  "output_function": "find-mzML-pivots"
+	}, {
+	  "name": "find-mzML-pivots",
+	  "chunk_size": 10000000,
+	  "identifier": "mass"
+	}, {
+	  "name": "combine-pivot-files",
+	  "chunk_size": 1000000,
+	  "sort": false
+	}, {
+	  "name": "split-mzML",
+	  "ranges": true,
+	  "chunk_size": 5000000,
+	  "output_function": "sort-mzML-chunk"
+	}, {
+	  "name": "sort-mzML-chunk",
+	  "chunk_size": 10000000,
+	  "identifier": "mass"
+	}, {
+	  "name": "combine-mzML-files",
+	  "chunk_size": 10000000,
+	  "sort": false
+	}, {
+	  "name": "tide",
+	  "num_threads": 0,
+		"species": "normalHuman"
+	}, {
+	  "name": "combine-tsv-files",
+	  "chunk_size": 10000000,
+	  "sort": false
+	}]
+}
